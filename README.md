@@ -1,4 +1,4 @@
-# Teclado por red (Mouse without b)
+# Keyboard Without Border
 
 Usa el teclado de una **portátil** para controlar una **PC grande** a través de la red local. Pensado para jugar (envía scancodes físicos, que es lo que leen los juegos), con baja latencia y recuperación automática ante pérdida de paquetes en Wi-Fi.
 

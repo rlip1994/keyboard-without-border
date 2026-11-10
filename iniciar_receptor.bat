@@ -1,3 +1,3 @@
 @echo off
 cd /d "%~dp0"
-start "Teclado Red" /min python teclado_red.py receptor
+start "Keyboard Without Border" /min python teclado_red.py receptor

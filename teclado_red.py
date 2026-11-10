@@ -1,5 +1,5 @@
 """
-teclado_red.py — Usa el teclado de la portátil en la PC grande por la red.
+Keyboard Without Border (teclado_red.py) — Usa el teclado de la portátil en la PC grande por la red.
 
   En la PC grande (como administrador):   python teclado_red.py receptor
   En la portátil:                         python teclado_red.py emisor
@@ -184,13 +184,20 @@ class INPUT(ctypes.Structure):
 KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE = 0x1, 0x2, 0x8
 
 
+SC_SHIFT_DER, VK_SHIFT_DER = 0x36, 0xA1
+
+
 def inyectar(sc, ext, presionada):
-    flags = KEYEVENTF_SCANCODE
+    flags, vk = KEYEVENTF_SCANCODE, 0
+    if sc == SC_SHIFT_DER:
+        # El hook de Windows marca el Shift derecho como "extendido", pero E0 36 es un
+        # "Shift falso" que Windows ignora. Se manda sin extendida y con el código virtual.
+        flags, vk, ext = 0, VK_SHIFT_DER, 0
     if ext:
         flags |= KEYEVENTF_EXTENDEDKEY
     if not presionada:
         flags |= KEYEVENTF_KEYUP
-    inp = INPUT(type=1, u=_UNION(ki=KEYBDINPUT(0, sc, flags, 0, 0)))
+    inp = INPUT(type=1, u=_UNION(ki=KEYBDINPUT(vk, sc, flags, 0, 0)))
     user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
 
 
@@ -331,6 +338,8 @@ class Emisor:
             if not self.activo or self.pc is None or sc == 0:
                 return False
 
+            if vk == VK_SHIFT_DER:
+                ext = 0  # el hook lo reporta como extendido, pero no lo es
             tecla = (sc, int(ext))
             (self.presionadas.add if down else self.presionadas.discard)(tecla)
             self._enviar(T_EVENTO, EVENTO.pack(sc, int(ext), int(down)), self.pc,
